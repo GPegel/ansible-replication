@@ -1,0 +1,43 @@
+---
+#file: roles/slave/tasks/main.yml
+
+- name: slave database config update
+  template: >
+    src=my.cnf.j2
+    dest=/etc/my.cnf
+    owner=root
+    group=root
+    mode=0644
+  notify: restart mysql
+
+- name: master backup sync
+  copy: src={{ local_path }} dest=/var/lib/mysql/
+
+#- name: db restore
+#  mysql_db: >
+#    name=*
+#    state=import
+#    target={{ backup_path }}
+
+- name: stop slave
+  mysql_replication: mode=stopslave
+
+- name: initial replication fetch
+  mysql_replication: mode=getmaster
+  delegate_to: "{{ replication_master }}"
+  register: replication_data
+
+- name: initial replication configuration
+  mysql_replication: >
+    mode=changemaster
+    master_host={{ replication_master }}
+    master_user={{ replication_user }}
+    master_password={{ replication_password }}
+    master_log_file={{ replication_data.File }}
+    master_log_pos={{ replication_data.Position }}
+
+- name: restore hack
+  shell: mysql < {{ backup_path }}
+  
+- name: replication start
+  mysql_replication: mode=startslave

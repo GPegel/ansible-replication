@@ -1,0 +1,22 @@
+---
+#file: roles/common/tasks/main.yml
+
+- name: yum update
+  yum: name=* state=latest
+
+- name: mysql install
+  yum: name={{ item }} state=latest
+  with_items:
+    - mysql-server
+    - MySQL-python
+    - ntp
+
+- name: activate services
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - mysqld
+    - ntpd
+
+- name: open firewall port for database
+  lineinfile: dest=/etc/sysconfig/iptables create=yes state=present insertafter="^:OUTPUT " line="-A INPUT -p tcp --dport 3306 -j ACCEPT"
+  notify: restart iptables

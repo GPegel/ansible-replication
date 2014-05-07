@@ -1,0 +1,9 @@
+---
+# Variables
+
+replication_master: 23.253.226.220
+replication_user: replicator
+replication_password: insecurepassword
+
+backup_path: /var/lib/mysql/latest_backup.sql
+local_path: /tmp/latest_backup.sql
