@@ -18,6 +18,15 @@
     priv=*.*:"REPLICATION CLIENT,SUPER,SELECT,RELOAD"
     state=present
 
+- name: test data copy
+  copy: src=/tmp/fullbackup.sql.gz dest=/tmp/fullbackup.sql.gz mode=0644
+
+- name: test data unpack
+  command: gunzip /tmp/fullbackup.sql.gz
+
+- name: test data import
+  shell: mysql < /tmp/fullbackup.sql  
+
 - name: backup cron setup
   cron: >
     special_time=daily
